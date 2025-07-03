@@ -7,6 +7,8 @@ import CommunityIcon from './icons/IconCommunity.vue'
 import SupportIcon from './icons/IconSupport.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { userLoginService,userRegisterService } from '../utils/user.js'
 const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 const router = useRouter()
  
@@ -15,7 +17,17 @@ const loginForm = reactive({
     username: '',
     password: ''
 })
- 
+
+const register = async ()=>{
+    let result = await userRegisterService(loginForm);
+    alert(result.msg ? result.msg : '注册成功'); 
+}
+//表单数据校验
+const login = async()=>{
+    let result = await userLoginService(loginForm);
+    alert(result.msg ? result.msg : '登录成功'); 
+}
+
 const errorMsg = ref('')
 const isFormValid = ref(false)
  
@@ -38,21 +50,24 @@ const handleLogin = async () => {
         errorMessage('警告:输入内容包含非法字符');
         return
     }
- 
+
     try {
-        // 对输入进行转义处理
-        const safeUsername = encodeURIComponent(loginForm.username)
-        const safePassword = encodeURIComponent(loginForm.password)
- 
-        // 实际的登录API调用
-        console.log('登录请求:', { username: safeUsername, password: safePassword })
- 
-        // 模拟登录成功并设置cookie，设置过期时间为1小时
+        // 调用后端 /selectALL 接口，传递用户名和密码
+        const response = await userLoginService(loginForm);
+        if(response.code === "200"){
+            // 登录成功，跳转主页
+            router.push('/about')
+        } else if(response.code === '400'){
+            alert('用户名或密码错误，请重新登录！');
+            loginForm.username = '';
+            loginForm.password = '';
+            document.getElementById('username').focus();
+        } else {
+            errorMessage('登录失败，请稍后重试');
+        }
+        // 设置cookie（如有需要）
         const expires = new Date(Date.now() + 3600 * 1000).toUTCString()
         document.cookie = `authToken=yourAuthToken; path=/; expires=${expires}`
- 
-        // 跳转到主页
-        router.push('/home')
     } catch (error) {
         errorMessage('登录失败，请稍后重试');
     }
@@ -90,7 +105,7 @@ onMounted(() => {
                 <span class="highlight"></span>
               </div>
               <div class="error-message" v-if="errorMsg">{{ errorMsg }}</div>
-              <button type="submit" class="submit-btn" :disabled="!isFormInvalid">
+              <button type="submit" class="submit-btn" :disabled="!isFormValid">
                 <span>登录 </span>
                 <i class="arrow-icon"></i>
               </button>

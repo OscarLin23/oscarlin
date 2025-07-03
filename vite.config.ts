@@ -15,4 +15,16 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      '/selectALL': {
+        target: 'http://localhost:9527',
+        changeOrigin: true,
+      },
+      '/login': {
+        target: 'http://localhost:9527',
+        changeOrigin: true,
+      },
+    }
+  }
 })
