@@ -23,7 +23,21 @@ const router = createRouter({
       name:'login',
       component: Login
     }
-  ],
+  ]
 })
+
+
+// 添加路由守卫
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('token');
+    const publicPages = ['/login', '/register']; // 公开页面
+    const authRequired = !publicPages.includes(to.path); // 需要授权的页面
+
+    if (authRequired && !token) {
+        next({ name: 'Login' }); // 如果未登录，重定向到登录页面
+    } else {
+        next(); // 放行
+    }
+});
 
 export default router
