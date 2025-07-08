@@ -1,15 +1,16 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+    <tr>
+        <td><a href="https://juejin.cn/post/7423420457657565247">cell A</a></td>
+        <td>cell B</td>
+        <td>cell C</td>
+        
+    </tr>
 </template>
+<script setup>
+import { onMounted } from 'vue'
 
-<style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-}
-</style>
+onMounted(() => {
+  const token = localStorage.getItem('token')
+  console.log('about页面的token:', token)
+})
+</script>

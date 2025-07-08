@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import WelcomeItem from './WelcomeItem.vue'
-import DocumentationIcon from './icons/IconDocumentation.vue'
-import ToolingIcon from './icons/IconTooling.vue'
-import EcosystemIcon from './icons/IconEcosystem.vue'
-import CommunityIcon from './icons/IconCommunity.vue'
-import SupportIcon from './icons/IconSupport.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 import { userLoginService,userRegisterService } from '../utils/user.js'
 const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 const router = useRouter()
@@ -54,13 +47,13 @@ const handleLogin = async () => {
     try {
         // 调用后端 /login 接口，传递用户名和密码
         const response = await userLoginService(loginForm);
-        localStorage.setItem(
+        if(response.code === "200"){
+             localStorage.setItem(
             'token',JSON.stringify(response.data)
         )
-        console.log(response.data)
-        if(response.code === "200"){
-            // 登录成功，跳转主页
-            router.push('/about')
+            setTimeout(() => {
+                router.push({ path: '/about' })
+            }, 1000)
         } else if(response.code === '400'){
             alert('用户名或密码错误，请重新登录！');
             loginForm.username = '';
@@ -122,20 +115,26 @@ onMounted(() => {
 </template>
 <style scoped>
 .login-wrapper{
-  min-height: 93.5vh;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg,#f5f7fa 0%,#c3cfc2 100%);
-  padding: 20px;
+  padding: 0;
+  margin: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 .container {
   width: 100%;
   max-width: 480px;
   background: #fff;
   border-radius: 20px;
-  padding: 40px;
-  padding-right: 80px;
+  padding: 40px 40px 40px 40px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 .form-header {

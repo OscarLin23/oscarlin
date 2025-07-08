@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import Login from '../components/TheWelcome.vue'
 import axios, { Axios, type AxiosResponse } from 'axios'
 
 const router = createRouter({
@@ -24,16 +23,11 @@ const router = createRouter({
       name: 'error',
       component: () => import('../views/Error.vue'),
     },
-    {
-      path:'/selectALL',
-      name:'login',
-      component: Login
-    }
   ]
 })
 
 router.beforeEach((to, from, next) => {
-  if(to.path.startsWith('/')) {
+  if(to.path===('/')) {
     window.localStorage.removeItem('token')
     next()
   }else{
@@ -42,7 +36,7 @@ router.beforeEach((to, from, next) => {
       next({path:'/'})
     }else{
       axios({
-        url:'http://localhost:8080/checkToken',
+        url:'http://localhost:9527/checkToken',
         method:'get',
         headers: {
           token:admin.token
