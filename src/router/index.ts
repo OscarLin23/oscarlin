@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Login from '../components/TheWelcome.vue'
+import axios, { Axios, type AxiosResponse } from 'axios'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,6 +20,11 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/error',
+      name: 'error',
+      component: () => import('../views/Error.vue'),
+    },
+    {
       path:'/selectALL',
       name:'login',
       component: Login
@@ -26,18 +32,30 @@ const router = createRouter({
   ]
 })
 
-
-// 添加路由守卫
 router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('token');
-    const publicPages = ['/login', '/register']; // 公开页面
-    const authRequired = !publicPages.includes(to.path); // 需要授权的页面
-
-    if (authRequired && !token) {
-        next({ name: 'Login' }); // 如果未登录，重定向到登录页面
-    } else {
-        next(); // 放行
+  if(to.path.startsWith('/')) {
+    window.localStorage.removeItem('token')
+    next()
+  }else{
+    let admin=JSON.parse(window.localStorage.getItem('token') )
+    if(!admin){
+      next({path:'/'})
+    }else{
+      axios({
+        url:'http://localhost:8080/checkToken',
+        method:'get',
+        headers: {
+          token:admin.token
+      }}).then((response:AxiosResponse) => {
+        console.log(response.data)
+        if(!response.data){
+          console.log('校验失效')
+          next({path:'/error'})
+        } 
+      })
+      next();
     }
-});
+  }
+})
 
 export default router

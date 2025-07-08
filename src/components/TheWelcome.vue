@@ -55,8 +55,9 @@ const handleLogin = async () => {
         // 调用后端 /login 接口，传递用户名和密码
         const response = await userLoginService(loginForm);
         localStorage.setItem(
-            'authToken', response.data && response.data.token ? response.data.token : ''
+            'token',JSON.stringify(response.data)
         )
+        console.log(response.data)
         if(response.code === "200"){
             // 登录成功，跳转主页
             router.push('/about')
