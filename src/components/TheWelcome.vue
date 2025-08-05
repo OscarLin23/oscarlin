@@ -2,19 +2,27 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { userLoginService,userRegisterService } from '../utils/user.js'
+import { getCaptchaImage, verifyCaptcha } from '../utils/captcha.js'
+
 const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
 const router = useRouter()
  
 // 表单数据
 const loginForm = reactive({
     username: '',
-    password: ''
+    password: '',
+    captcha: '' // 添加验证码字段
 })
+
+// 验证码相关
+const captchaImage = ref('')
+const captchaTime = ref(Date.now())
 
 const register = async ()=>{
     let result = await userRegisterService(loginForm);
     alert(result.msg ? result.msg : '注册成功'); 
 }
+
 //表单数据校验
 const login = async()=>{
     let result = await userLoginService(loginForm);
@@ -23,15 +31,50 @@ const login = async()=>{
 
 const errorMsg = ref('')
 const isFormValid = ref(false)
+
+// 获取验证码图片
+const loadCaptchaImage = () => {
+    captchaTime.value = Date.now()
+    captchaImage.value = getCaptchaImage(captchaTime.value)
+}
+
+// 刷新验证码
+const changeImage = () => {
+    loadCaptchaImage()
+    loginForm.captcha = '' // 清空验证码输入
+}
  
 // 输入验证
 const validateInput = () => {
     // 基本验证
-    if (loginForm.username && loginForm.password) {
+    if (loginForm.username && loginForm.password && loginForm.captcha) {
         isFormValid.value = true
         errorMsg.value = ''
     } else {
         isFormValid.value = false
+    }
+}
+
+// 验证验证码
+const validateCaptcha = async () => {
+    if (!loginForm.captcha) {
+        errorMessage('请输入验证码')
+        return false
+    }
+    
+    try {
+        const response = await verifyCaptcha(loginForm.captcha)
+        if (response.code === '200' && response.data === true) {
+            return true
+        } else {
+            errorMessage('验证码错误，请重新输入')
+            loginForm.captcha = ''
+            loadCaptchaImage()
+            return false
+        }
+    } catch (error) {
+        errorMessage('验证码验证失败，请重试')
+        return false
     }
 }
  
@@ -39,8 +82,14 @@ const validateInput = () => {
 const handleLogin = async () => {
     // 防止XSS攻击
     const xssPattern = /(~|\{|\}|"|'|<|>|\?)/g
-    if (xssPattern.test(loginForm.username) || xssPattern.test(loginForm.password)) {
+    if (xssPattern.test(loginForm.username) || xssPattern.test(loginForm.password) || xssPattern.test(loginForm.captcha)) {
         errorMessage('警告:输入内容包含非法字符');
+        return
+    }
+
+    // 先验证验证码
+    const captchaValid = await validateCaptcha()
+    if (!captchaValid) {
         return
     }
 
@@ -58,6 +107,8 @@ const handleLogin = async () => {
             alert('用户名或密码错误，请重新登录！');
             loginForm.username = '';
             loginForm.password = '';
+            loginForm.captcha = '';
+            loadCaptchaImage();
             document.getElementById('username').focus();
         } else {
             errorMessage('登录失败，请稍后重试');
@@ -80,6 +131,7 @@ const errorMessage = (text) => {
  
 onMounted(() => {
     validateInput()
+    loadCaptchaImage() // 加载验证码图片
 })
 </script>
 
@@ -100,6 +152,17 @@ onMounted(() => {
                 <input id="password" v-model.trim="loginForm.password" type="password" autocomplete="off" @input="validateInput" required />
                 <label for="password">密码</label>
                 <span class="highlight"></span>
+              </div>
+              <div class="captcha-group">
+                <div class="input-group captcha-input">
+                  <input id="captcha" v-model.trim="loginForm.captcha" type="text" autocomplete="off" @input="validateInput"  required />
+                  <label for="captcha">验证码</label>
+                  <span class="highlight"></span>
+                </div>
+                <div class="captcha-image-container">
+                  <img :src="captchaImage" alt="验证码" class="captcha-image" @click="changeImage" />
+                  <div class="captcha-tip" @click="changeImage">点击刷新</div>
+                </div>
               </div>
               <div class="error-message" v-if="errorMsg">{{ errorMsg }}</div>
               <button type="submit" class="submit-btn" :disabled="!isFormValid">
@@ -186,6 +249,51 @@ onMounted(() => {
   font-size: 14px;
   color: #3498db;
 }
+
+/* 验证码样式 */
+.captcha-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  align-items: flex-end;
+}
+
+.captcha-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.captcha-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.captcha-image {
+  height: 60px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.captcha-image:hover {
+  border-color: #3498db;
+  transform: scale(1.05);
+}
+
+.captcha-tip {
+  font-size: 12px;
+  color: #95a5a6;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.captcha-tip:hover {
+  color: #3498db;
+}
+
 .submit-btn {
   width: 100%;
     padding: 15px;
@@ -246,6 +354,15 @@ onMounted(() => {
  
     .form-header p {
         font-size: 14px;
+    }
+    
+    .captcha-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .captcha-input {
+        margin-bottom: 10px;
     }
 }
  

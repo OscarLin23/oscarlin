@@ -25,6 +25,14 @@ export default defineConfig({
         target: 'http://localhost:9527',
         changeOrigin: true,
       },
+      '/authCode': {
+        target: 'http://localhost:9527',
+        changeOrigin: true,
+      },
+      '/verifyCode': {
+        target: 'http://localhost:9527',
+        changeOrigin: true,
+      },
     }
   }
 })
