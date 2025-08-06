@@ -33,6 +33,10 @@ export default defineConfig({
         target: 'http://localhost:9527',
         changeOrigin: true,
       },
+      '/user/register': {
+        target: 'http://localhost:9527',
+        changeOrigin: true,
+      },
     }
   }
 })

@@ -23,12 +23,18 @@ const router = createRouter({
       name: 'error',
       component: () => import('../views/Error.vue'),
     },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/Register.vue'),
+    }
     
   ]
 })
 
 router.beforeEach((to, from, next) => {
-  if(to.path===('/')) {
+  const publicPaths= ['/','/register']
+  if(publicPaths.includes(to.path)) {
     window.localStorage.removeItem('token')
     next()
   }else{
