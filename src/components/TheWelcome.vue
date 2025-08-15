@@ -101,7 +101,7 @@ const handleLogin = async () => {
             'token',JSON.stringify(response.data)
         )
             setTimeout(() => {
-                router.push({ path: '/about' })
+                router.push({ path: '/article' })
             }, 1000)
         } else if(response.code === '400'){
             alert('用户名或密码错误，请重新登录！');

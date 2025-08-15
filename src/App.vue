@@ -11,6 +11,40 @@ import HelloWorld from './components/HelloWorld.vue'
   <RouterView />
 </template>
 
+<style>
+/* 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 确保博客页面占满整个视口 */
+.blog-container {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* 移除默认的header样式，让博客页面完全自定义 */
+header {
+  display: none;
+}
+</style>
+
 <style scoped>
 header {
   line-height: 1.5;
